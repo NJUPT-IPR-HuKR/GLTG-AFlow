@@ -1,0 +1,104 @@
+
+
+
+#### general settings
+name: SD-in-Zero-maps
+
+use_tb_logger: true
+model: LLFlow
+distortion: sr
+scale: 1
+gpu_ids: [0]
+dataset: LoL_v2
+optimize_all_z: false
+cond_encoder: ConEncoder1
+train_gt_ratio: 0.5
+avg_color_map: false
+
+concat_histeq: false
+histeq_as_input: false
+concat_color_map: false
+gray_map: false
+
+align_condition_feature: false
+align_weight: 0.001
+align_maxpool: true
+
+to_yuv: false
+
+encode_color_map: false
+
+le_curve: false
+
+
+#### datasets
+datasets:
+  train:
+
+    root: .\
+    quant: 32
+    use_shuffle: true
+    n_workers: 0   # per GPU
+    batch_size: 4
+    use_flip: true
+    color: RGB
+    use_crop: true
+    GT_size: 160
+    noise_prob: 0
+    noise_level: 5
+    log_low: true
+
+  val:
+    root: .\
+    n_workers: 1
+    quant: 32
+    n_max: 20
+    batch_size: 1 # must be 1
+    log_low: true
+
+#### Test Settings
+# If u want to test images with zero-maps, fill in the path of the low-light image in 'dataroot_LR'. Use the pre-trained
+# model 'xx_zeromap'
+dataroot_test: .\dataset\V2\low
+dataroot_GT: .\  # no need
+dataroot_LR: .\dataset\SD-in\low
+model_path: .\m\LOL_v2.pth
+heat: 0 # This is the standard deviation of the latent vectors
+
+#### network structures
+network_G:
+  which_model_G: LLFlow
+  in_nc: 3
+  out_nc: 3
+  nf: 64
+  nb: 24
+  train_RRDB: false
+  train_RRDB_delay: 0.5
+
+  flow:
+    K: 8
+    L: 3
+    noInitialInj: true
+    coupling: CondAffineSeparatedAndCond
+    additionalFlowNoAffine: 2
+    split:
+      enable: false
+    fea_up0: true
+    stackRRDB:
+      blocks: [ 1, 3, 5, 7 ]
+      concat: true
+#### path
+path:
+  root: ./
+  strict_load: true
+  resume_state: auto
+#### validation settings
+val:
+  n_sample: 4
+test:
+  heats: [ 0.0, 0.7, 0.8, 0.9 ]
+
+#### logger
+logger:
+  print_freq: 10
+  save_checkpoint_freq: !!float 1e2
